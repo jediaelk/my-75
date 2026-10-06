@@ -1,0 +1,721 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="75 HARD">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>75 HARD — Reinvention</title>
+<style>
+  :root{
+    --bg:#0a0a0b; --card:#141417; --card2:#1b1b1f; --line:#26262b;
+    --txt:#f4f4f5; --dim:#8b8b93; --dim2:#5e5e66;
+    --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+  html,body{margin:0; background:var(--bg); color:var(--txt)}
+  body{
+    font:400 16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    padding:0 16px calc(84px + env(safe-area-inset-bottom));
+    max-width:560px; margin:0 auto;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{margin:0; font-weight:650; letter-spacing:-.01em}
+  button{font:inherit; color:inherit; background:none; border:0; cursor:pointer}
+  input,textarea,select{
+    font:inherit; color:var(--txt); background:var(--card2);
+    border:1px solid var(--line); border-radius:10px; padding:10px 12px; width:100%;
+  }
+  input:focus,textarea:focus,select:focus{outline:none; border-color:var(--dim2)}
+  .num{font-variant-numeric:tabular-nums}
+
+  /* --- header --- */
+  header{padding:calc(18px + env(safe-area-inset-top)) 0 14px}
+  .eyebrow{font-size:11px; letter-spacing:.16em; text-transform:uppercase; color:var(--dim2)}
+  .dayline{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-top:6px}
+  .day{font-size:30px; font-weight:700; letter-spacing:-.02em}
+  .day small{font-size:16px; font-weight:500; color:var(--dim)}
+  .streak{font-size:13px; font-weight:600; color:var(--warn); white-space:nowrap}
+
+  /* --- cards --- */
+  .card{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px; margin-bottom:12px}
+  .card > .eyebrow{margin-bottom:12px}
+  .row{display:flex; align-items:center; justify-content:space-between; gap:12px}
+
+  /* --- score --- */
+  .score{display:flex; align-items:baseline; gap:10px}
+  .score b{font-size:34px; font-weight:700; letter-spacing:-.02em}
+  .score span{color:var(--dim); font-size:15px}
+  .bar{height:6px; border-radius:99px; background:var(--card2); overflow:hidden; margin-top:12px}
+  .bar i{display:block; height:100%; border-radius:99px; background:var(--ok); transition:width .25s ease}
+
+  /* --- habits --- */
+  .habit{
+    display:flex; align-items:center; gap:14px; width:100%; text-align:left;
+    min-height:54px; padding:8px 4px; border-top:1px solid var(--line);
+  }
+  .habit:first-of-type{border-top:0}
+  .box{
+    flex:0 0 26px; height:26px; border-radius:8px; border:2px solid #3a3a42;
+    display:grid; place-items:center; transition:all .12s ease;
+  }
+  .habit[aria-pressed="true"] .box{background:var(--ok); border-color:var(--ok)}
+  .box svg{width:15px; height:15px; opacity:0; transform:scale(.6); transition:all .12s ease}
+  .habit[aria-pressed="true"] .box svg{opacity:1; transform:scale(1)}
+  .habit span{color:var(--dim); font-size:15.5px; transition:color .12s}
+  .habit[aria-pressed="true"] span{color:var(--txt); font-weight:500}
+  .habit:disabled{opacity:.45}
+  .habit:active .box{transform:scale(.88)}
+
+  /* --- metrics --- */
+  .fields{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  label.f{display:block; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--dim2); margin-bottom:6px}
+  textarea{min-height:76px; resize:vertical; line-height:1.5}
+
+  /* --- weight stats --- */
+  .kpis{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; text-align:center}
+  .kpi b{display:block; font-size:21px; font-weight:700; letter-spacing:-.02em}
+  .kpi em{display:block; font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--dim2); font-style:normal; margin-bottom:4px}
+  .stat{display:flex; justify-content:space-between; font-size:14.5px; padding:7px 0; border-top:1px solid var(--line)}
+  .stat:first-child{border-top:0}
+  .stat span{color:var(--dim)}
+
+  /* --- calendar --- */
+  .grid{display:grid; grid-template-columns:repeat(7,1fr); gap:6px}
+  .tile{
+    aspect-ratio:1; border-radius:9px; background:var(--card2); border:1px solid var(--line);
+    display:grid; place-items:center; gap:0; font-size:12px; font-weight:600; color:var(--dim2);
+    position:relative;
+  }
+  .tile.pass{background:rgba(34,197,94,.17); border-color:rgba(34,197,94,.45); color:#86efac}
+  .tile.part{background:rgba(245,158,11,.15); border-color:rgba(245,158,11,.4); color:#fcd34d}
+  .tile.miss{background:rgba(239,68,68,.13); border-color:rgba(239,68,68,.35); color:#fca5a5}
+  .tile.today{box-shadow:0 0 0 2px var(--txt)}
+  .tile i{position:absolute; bottom:3px; font-size:8px; font-style:normal; opacity:.85}
+  .legend{display:flex; flex-wrap:wrap; gap:14px; margin-top:14px; font-size:12px; color:var(--dim)}
+  .legend b{display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; vertical-align:middle}
+
+  /* --- chart --- */
+  svg.chart{width:100%; height:auto; display:block; overflow:visible}
+
+  /* --- settings --- */
+  .edit{display:flex; align-items:center; gap:8px; margin-bottom:8px}
+  .edit input{flex:1}
+  .icon{
+    flex:0 0 34px; height:34px; border-radius:9px; background:var(--card2);
+    border:1px solid var(--line); display:grid; place-items:center; color:var(--dim); font-size:15px;
+  }
+  .icon:active{background:#2a2a30}
+  .btn{
+    display:block; width:100%; text-align:center; padding:13px; border-radius:11px;
+    background:var(--card2); border:1px solid var(--line); font-weight:600; font-size:15px;
+  }
+  .btn:active{background:#2a2a30}
+  .btn.ghost{background:none; color:var(--dim)}
+  .hint{font-size:12.5px; color:var(--dim2); line-height:1.5; margin:10px 0 0}
+
+  /* --- nav --- */
+  nav{
+    position:fixed; left:0; right:0; bottom:0; z-index:10;
+    display:flex; justify-content:center; gap:4px;
+    padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+    background:rgba(10,10,11,.86); backdrop-filter:blur(14px); border-top:1px solid var(--line);
+  }
+  nav button{
+    flex:1; max-width:130px; padding:9px 4px; border-radius:10px;
+    font-size:10.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--dim2);
+  }
+  nav button[aria-current="true"]{color:var(--txt); background:var(--card)}
+
+  /* --- misc --- */
+  .datenav{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:12px}
+  .datenav button{padding:8px 14px; border-radius:10px; background:var(--card); border:1px solid var(--line); color:var(--dim)}
+  .datenav button:disabled{opacity:.3}
+  .datenav b{font-size:13px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; color:var(--dim)}
+  .empty{color:var(--dim2); font-size:14px; text-align:center; padding:20px 10px; line-height:1.6}
+  .saved{
+    position:fixed; top:calc(14px + env(safe-area-inset-top)); left:50%; transform:translateX(-50%);
+    background:var(--card2); border:1px solid var(--line); color:var(--dim);
+    font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; padding:6px 14px; border-radius:99px;
+    opacity:0; transition:opacity .2s; pointer-events:none; z-index:20;
+  }
+  .saved.on{opacity:1}
+  .big{font-size:46px; font-weight:700; letter-spacing:-.03em; text-align:center; margin:4px 0}
+</style>
+</head>
+<body>
+
+<div class="saved" id="toast">Saved</div>
+<header id="head"></header>
+<main id="view"></main>
+
+<nav id="nav"></nav>
+
+<script>
+/* ============================================================
+   75 HARD — Reinvention Tracker
+   Single-file personal tracker. All data lives in localStorage
+   under the key below. Habits are data, not schema: add, rename,
+   reorder or delete them freely and every score re-derives.
+   ============================================================ */
+
+const KEY = 'my75.v1';
+
+const DEFAULT_HABITS = [
+  'Stay within calorie target',
+  'Hit 160g+ protein',
+  'No alcohol',
+  'Daily shake mix',
+  '10,000+ steps',
+  'Workout / cardio',
+  '10 min mobility',
+  '2.5–3L water',
+  '7.5+ hours sleep',
+  'Read 10 pages',
+  'Bible reading',
+  '30 min growth work',
+  'No social before noon',
+  'Morning weigh-in',
+];
+
+function freshState() {
+  return {
+    name: '75 HARD — Reinvention',
+    startDate: key(new Date()),
+    durationDays: 75,
+    startWeight: 77,
+    goalWeight: 71,
+    passThreshold: 11,
+    habits: DEFAULT_HABITS.map((label, i) => ({ id: 'h' + (i + 1), label })),
+    logs: {},            // { 'YYYY-MM-DD': { done:[habitId], weight:number, notes:string } }
+    nextId: DEFAULT_HABITS.length + 1,
+  };
+}
+
+let S = load();
+let tab = 'today';
+let sel = clamp(key(new Date()));   // date being viewed/edited
+
+/* ---------- persistence ---------- */
+
+function load() {
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) return Object.assign(freshState(), JSON.parse(raw));
+  } catch (e) { /* fall through to a fresh challenge */ }
+  return freshState();
+}
+
+let toastTimer;
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(S));
+  const t = document.getElementById('toast');
+  t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('on'), 900);
+}
+
+/* ---------- dates ---------- */
+
+function key(d) {
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+function parse(k) {
+  const [y, m, d] = k.split('-').map(Number);
+  return new Date(y, m - 1, d);
+}
+function shift(k, days) {
+  const d = parse(k);
+  d.setDate(d.getDate() + days);
+  return key(d);
+}
+function diff(a, b) {              // whole days from a to b
+  return Math.round((parse(b) - parse(a)) / 86400000);
+}
+function clamp(k) {                // keep a date inside the challenge window
+  const day = diff(S.startDate, k) + 1;
+  if (day < 1) return S.startDate;
+  if (day > S.durationDays) return shift(S.startDate, S.durationDays - 1);
+  return k;
+}
+const today = () => key(new Date());
+const dayNum = k => diff(S.startDate, k) + 1;
+const isFuture = k => diff(today(), k) > 0;
+const fmtDate = k => parse(k).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short' });
+
+/* ---------- derived values ---------- */
+
+const log = k => S.logs[k] || { done: [], weight: null, notes: '' };
+
+// Only count habits that still exist, so deleting one never inflates a score.
+function score(k) {
+  const live = new Set(S.habits.map(h => h.id));
+  return log(k).done.filter(id => live.has(id)).length;
+}
+const total = () => S.habits.length;
+const pct = k => total() ? Math.round(score(k) / total() * 100) : 0;
+const threshold = () => Math.min(S.passThreshold, total());
+
+function status(k) {
+  if (isFuture(k)) return 'future';
+  const s = score(k);
+  if (s >= threshold() && s > 0) return 'pass';
+  if (s > 0) return 'part';
+  return 'miss';
+}
+
+function elapsedDates() {           // challenge days up to and including today
+  const out = [];
+  for (let i = 0; i < S.durationDays; i++) {
+    const k = shift(S.startDate, i);
+    if (isFuture(k)) break;
+    out.push(k);
+  }
+  return out;
+}
+
+function streaks() {
+  const days = elapsedDates();
+  let cur = 0, best = 0, run = 0;
+  days.forEach(k => {
+    if (status(k) === 'pass') { run++; best = Math.max(best, run); } else { run = 0; }
+  });
+  // Current streak ignores today if today is still unfinished.
+  for (let i = days.length - 1; i >= 0; i--) {
+    if (status(days[i]) === 'pass') cur++;
+    else if (i === days.length - 1 && days[i] === today()) continue;
+    else break;
+  }
+  return { cur, best };
+}
+
+function weights() {                // [{k, w}] in date order
+  return elapsedDates()
+    .map(k => ({ k, w: log(k).weight }))
+    .filter(p => typeof p.w === 'number' && !isNaN(p.w));
+}
+function avg(arr) { return arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null; }
+function sevenDayAvg() {
+  const w = weights().slice(-7).map(p => p.w);
+  return avg(w);
+}
+const currentWeight = () => { const w = weights(); return w.length ? w[w.length - 1].w : S.startWeight; };
+const daysLeft = () => Math.max(0, S.durationDays - elapsedDates().length);
+
+function requiredPace() {
+  const remain = currentWeight() - S.goalWeight;
+  const weeks = daysLeft() / 7;
+  if (remain <= 0 || weeks <= 0) return null;
+  return remain / weeks;
+}
+
+function adherence() {
+  const days = elapsedDates();
+  if (!days.length || !total()) return 0;
+  return Math.round(days.reduce((a, k) => a + score(k), 0) / (days.length * total()) * 100);
+}
+
+const one = n => (Math.round(n * 10) / 10).toFixed(1);
+
+/* ---------- mutations ---------- */
+
+function edit(k, patch) {
+  S.logs[k] = Object.assign(log(k), patch);
+  save();
+}
+
+function toggle(k, id) {
+  const done = log(k).done.slice();
+  const i = done.indexOf(id);
+  if (i >= 0) done.splice(i, 1); else done.push(id);
+  edit(k, { done });
+}
+
+/* ---------- backup ---------- */
+
+// Prefers the iOS share sheet so the file can go to Files, Messages or mail.
+async function exportData() {
+  const name = `75hard-day${dayNum(today())}-${today()}.json`;
+  const json = JSON.stringify(S, null, 2);
+  try {
+    const f = new File([json], name, { type: 'application/json' });
+    if (navigator.canShare && navigator.canShare({ files: [f] })) {
+      await navigator.share({ files: [f], title: name });
+      return;
+    }
+  } catch (e) {
+    if (e.name === 'AbortError') return;
+  }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([json], { type: 'application/json' }));
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+
+function restore(text) {
+  let data;
+  try { data = JSON.parse(text); } catch (e) { return alert('That backup could not be read.'); }
+  if (!data || !Array.isArray(data.habits) || typeof data.logs !== 'object') {
+    return alert('That does not look like a 75 HARD backup.');
+  }
+  const days = Object.keys(data.logs).length;
+  if (!confirm(`Replace your current data with this backup (${days} logged days)?`)) return;
+  S = Object.assign(freshState(), data);
+  sel = clamp(today());
+  save();
+  render();
+}
+
+/* ============================ VIEWS ============================ */
+
+const CHECK = '<svg viewBox="0 0 16 16" fill="none"><path d="M3 8.5l3.2 3.2L13 5" stroke="#07140b" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function renderHeader() {
+  const started = diff(S.startDate, today()) >= 0;
+  const done = elapsedDates().length >= S.durationDays && !isFuture(shift(S.startDate, S.durationDays - 1));
+  const { cur } = streaks();
+  let main;
+  if (!started) main = `<div class="day">Starts in <span class="num">${diff(today(), S.startDate)}</span> <small>days</small></div>`;
+  else if (done) main = `<div class="day">75 days complete</div>`;
+  else main = `<div class="day num">Day ${dayNum(today())} <small>/ ${S.durationDays}</small></div>`;
+
+  document.getElementById('head').innerHTML = `
+    <div class="eyebrow">${esc(S.name)}</div>
+    <div class="dayline">${main}${cur ? `<div class="streak num">${cur} day streak</div>` : ''}</div>`;
+}
+
+function viewToday() {
+  const s = score(sel), t = total(), isToday = sel === today();
+  const l = log(sel);
+  const locked = isFuture(sel);
+  const prevOk = dayNum(sel) > 1;
+  const nextOk = dayNum(sel) < S.durationDays && !isFuture(shift(sel, 1));
+
+  return `
+  <div class="datenav">
+    <button id="prev" ${prevOk ? '' : 'disabled'}>&larr;</button>
+    <b>${isToday ? 'Today' : `Day ${dayNum(sel)} · ${fmtDate(sel)}`}</b>
+    <button id="next" ${nextOk ? '' : 'disabled'}>&rarr;</button>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div class="score"><b class="num">${s}</b><span class="num">/ ${t}</span></div>
+      <div class="score"><b class="num" style="color:${s >= threshold() ? 'var(--ok)' : 'var(--dim)'}">${pct(sel)}%</b></div>
+    </div>
+    <div class="bar"><i style="width:${t ? s / t * 100 : 0}%"></i></div>
+  </div>
+
+  <div class="card">
+    ${t ? S.habits.map(h => `
+      <button class="habit" data-id="${h.id}" aria-pressed="${l.done.includes(h.id)}" ${locked ? 'disabled' : ''}>
+        <span class="box">${CHECK}</span><span>${esc(h.label)}</span>
+      </button>`).join('')
+      : '<div class="empty">No habits yet.<br>Add your list in Settings.</div>'}
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Daily log</div>
+    <div class="fields">
+      <div>
+        <label class="f" for="w">Weight (kg)</label>
+        <input id="w" type="number" inputmode="decimal" step="0.1" placeholder="—"
+               value="${l.weight ?? ''}" ${locked ? 'disabled' : ''}>
+      </div>
+    </div>
+    <div style="margin-top:12px">
+      <label class="f" for="n">Notes</label>
+      <textarea id="n" placeholder="What went well? What was hard?" ${locked ? 'disabled' : ''}>${esc(l.notes || '')}</textarea>
+    </div>
+  </div>`;
+}
+
+function viewCalendar() {
+  const tiles = [];
+  for (let i = 0; i < S.durationDays; i++) {
+    const k = shift(S.startDate, i), st = status(k);
+    const mark = st === 'pass' ? '✓' : st === 'part' ? '~' : st === 'miss' ? '×' : '';
+    tiles.push(`<button class="tile ${st} ${k === today() ? 'today' : ''}" data-k="${k}">
+      <span class="num">${i + 1}</span>${mark ? `<i>${mark}</i>` : ''}</button>`);
+  }
+  const { best } = streaks();
+  return `
+  <div class="card">
+    <div class="eyebrow">75 days</div>
+    <div class="grid">${tiles.join('')}</div>
+    <div class="legend">
+      <span><b style="background:rgba(34,197,94,.6)"></b>✓ Pass</span>
+      <span><b style="background:rgba(245,158,11,.6)"></b>~ Partial</span>
+      <span><b style="background:rgba(239,68,68,.5)"></b>× Miss</span>
+      <span><b style="background:var(--card2)"></b>Future</span>
+    </div>
+    <p class="hint">A pass is ${threshold()} of ${total()} habits. Tap any day to open its log.</p>
+  </div>
+  <div class="card">
+    <div class="stat"><span>Overall adherence</span><b class="num">${adherence()}%</b></div>
+    <div class="stat"><span>Pass days</span><b class="num">${elapsedDates().filter(k => status(k) === 'pass').length} / ${elapsedDates().length}</b></div>
+    <div class="stat"><span>Perfect days</span><b class="num">${elapsedDates().filter(k => score(k) === total() && total()).length}</b></div>
+    <div class="stat"><span>Longest streak</span><b class="num">${best} days</b></div>
+  </div>`;
+}
+
+function chart() {
+  const pts = weights();
+  if (pts.length < 2) return `<div class="empty">Log your weight for two days to see the trend.</div>`;
+
+  const W = 320, H = 150, P = 6;
+  const xs = pts.map(p => dayNum(p.k));
+  const all = pts.map(p => p.w).concat([S.goalWeight, S.startWeight]);
+  const lo = Math.min(...all) - .6, hi = Math.max(...all) + .6;
+  const X = d => P + (d - 1) / (S.durationDays - 1) * (W - P * 2);
+  const Y = w => H - P - (w - lo) / (hi - lo) * (H - P * 2);
+
+  // 7-day trailing average, the metric that actually matters
+  const ma = pts.map((p, i) => {
+    const win = pts.slice(Math.max(0, i - 6), i + 1).map(q => q.w);
+    return { d: dayNum(p.k), w: avg(win) };
+  });
+
+  const line = arr => arr.map((p, i) => `${i ? 'L' : 'M'}${X(p.d).toFixed(1)} ${Y(p.w).toFixed(1)}`).join(' ');
+  const daily = pts.map(p => ({ d: dayNum(p.k), w: p.w }));
+
+  return `
+  <svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Weight trend">
+    <path d="M${X(1)} ${Y(S.startWeight)} L${X(S.durationDays)} ${Y(S.goalWeight)}"
+          stroke="#3f3f46" stroke-width="1" stroke-dasharray="4 4" fill="none"/>
+    <line x1="${P}" y1="${Y(S.goalWeight)}" x2="${W - P}" y2="${Y(S.goalWeight)}"
+          stroke="rgba(34,197,94,.35)" stroke-width="1"/>
+    <path d="${line(daily)}" stroke="#52525b" stroke-width="1.4" fill="none"/>
+    <path d="${line(ma)}" stroke="#f4f4f5" stroke-width="2.2" fill="none" stroke-linejoin="round"/>
+    ${daily.map(p => `<circle cx="${X(p.d).toFixed(1)}" cy="${Y(p.w).toFixed(1)}" r="1.8" fill="#52525b"/>`).join('')}
+  </svg>
+  <div class="legend">
+    <span><b style="background:#f4f4f5"></b>7-day average</span>
+    <span><b style="background:#52525b"></b>Daily</span>
+    <span><b style="background:#3f3f46"></b>Target path</span>
+  </div>`;
+}
+
+function viewProgress() {
+  const cw = currentWeight(), lost = S.startWeight - cw, left = cw - S.goalWeight;
+  const prog = Math.max(0, Math.min(1, lost / (S.startWeight - S.goalWeight || 1)));
+  const ma7 = sevenDayAvg(), pace = requiredPace();
+  const wk = weights();
+  let weekly = null;
+  if (wk.length > 1) {
+    const span = diff(wk[0].k, wk[wk.length - 1].k);
+    if (span > 0) weekly = (wk[0].w - wk[wk.length - 1].w) / (span / 7);
+  }
+
+  return `
+  <div class="card">
+    <div class="kpis">
+      <div class="kpi"><em>Start</em><b class="num">${one(S.startWeight)}</b></div>
+      <div class="kpi"><em>Current</em><b class="num">${one(cw)}</b></div>
+      <div class="kpi"><em>Goal</em><b class="num" style="color:var(--ok)">${one(S.goalWeight)}</b></div>
+    </div>
+    <div class="bar" style="margin-top:14px"><i style="width:${prog * 100}%"></i></div>
+    <div class="row" style="margin-top:10px; font-size:13.5px; color:var(--dim)">
+      <span class="num">Lost ${one(Math.max(0, lost))} kg</span>
+      <span class="num">${left > 0 ? one(left) + ' kg to go' : 'Goal reached'}</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Weight trend</div>
+    ${chart()}
+  </div>
+
+  <div class="card">
+    <div class="stat"><span>7-day average</span><b class="num">${ma7 ? one(ma7) + ' kg' : '—'}</b></div>
+    <div class="stat"><span>Average weekly loss</span><b class="num">${weekly !== null ? one(weekly) + ' kg' : '—'}</b></div>
+    <div class="stat"><span>Required pace</span><b class="num">${pace ? one(pace) + ' kg/week' : 'Goal reached'}</b></div>
+    <div class="stat"><span>Days remaining</span><b class="num">${daysLeft()}</b></div>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Last 7 days</div>
+    ${(() => {
+      const d = elapsedDates().slice(-7);
+      if (!d.length) return '<div class="empty">Nothing logged yet.</div>';
+      const w = d.map(k => log(k).weight).filter(x => typeof x === 'number');
+      return `
+      <div class="stat"><span>Habit adherence</span><b class="num">${total() ? Math.round(d.reduce((a, k) => a + score(k), 0) / (d.length * total()) * 100) : 0}%</b></div>
+      <div class="stat"><span>Pass days</span><b class="num">${d.filter(k => status(k) === 'pass').length} / ${d.length}</b></div>
+      <div class="stat"><span>Average weight</span><b class="num">${w.length ? one(avg(w)) + ' kg' : '—'}</b></div>`;
+    })()}
+  </div>`;
+}
+
+function viewSettings() {
+  return `
+  <div class="card">
+    <div class="eyebrow">Your habits</div>
+    <div id="habits">
+      ${S.habits.map((h, i) => `
+        <div class="edit" data-i="${i}">
+          <input class="hl" value="${esc(h.label)}" aria-label="Habit ${i + 1}">
+          <button class="icon up" title="Move up" ${i === 0 ? 'disabled' : ''}>&uarr;</button>
+          <button class="icon down" title="Move down" ${i === S.habits.length - 1 ? 'disabled' : ''}>&darr;</button>
+          <button class="icon del" title="Delete">&times;</button>
+        </div>`).join('')}
+    </div>
+    <button class="btn" id="add">+ Add habit</button>
+    <p class="hint">Scores are always out of however many habits you have, so edit this list whenever you like. Deleting a habit leaves past days untouched.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Challenge</div>
+    <div style="margin-bottom:10px">
+      <label class="f" for="s-name">Name</label>
+      <input id="s-name" data-s="name" value="${esc(S.name)}">
+    </div>
+    <div class="fields">
+      <div><label class="f" for="s-start">Start date</label><input id="s-start" type="date" data-s="startDate" value="${S.startDate}"></div>
+      <div><label class="f" for="s-dur">Duration (days)</label><input id="s-dur" type="number" data-s="durationDays" value="${S.durationDays}"></div>
+      <div><label class="f" for="s-sw">Start weight</label><input id="s-sw" type="number" step="0.1" data-s="startWeight" value="${S.startWeight}"></div>
+      <div><label class="f" for="s-gw">Goal weight</label><input id="s-gw" type="number" step="0.1" data-s="goalWeight" value="${S.goalWeight}"></div>
+      <div><label class="f" for="s-pt">Pass threshold</label><input id="s-pt" type="number" data-s="passThreshold" value="${S.passThreshold}"></div>
+    </div>
+    <p class="hint">Ends ${fmtDate(shift(S.startDate, S.durationDays - 1))}.</p>
+  </div>
+
+  <div class="card">
+    <div class="eyebrow">Backup</div>
+    <button class="btn" id="export" style="margin-bottom:8px">Export backup</button>
+    <button class="btn" id="copy" style="margin-bottom:8px">Copy backup as text</button>
+    <button class="btn ghost" id="import" style="margin-bottom:8px">Restore from file</button>
+    <button class="btn ghost" id="paste" style="margin-bottom:8px">Restore from clipboard</button>
+    <input type="file" id="file" accept="application/json,text/plain" hidden>
+    <button class="btn ghost" id="reset" style="color:var(--bad)">Reset everything</button>
+    <p class="hint">Your logs live only on this device. Export every week or two &mdash; it opens the share sheet, so you can drop it in Files or mail it to yourself.</p>
+  </div>`;
+}
+
+/* ============================ WIRING ============================ */
+
+const TABS = [['today', 'Today'], ['calendar', 'Calendar'], ['progress', 'Progress'], ['settings', 'Settings']];
+
+function render() {
+  renderHeader();
+  const v = document.getElementById('view');
+  v.innerHTML = tab === 'today' ? viewToday()
+    : tab === 'calendar' ? viewCalendar()
+    : tab === 'progress' ? viewProgress()
+    : viewSettings();
+
+  document.getElementById('nav').innerHTML = TABS
+    .map(([id, label]) => `<button data-tab="${id}" aria-current="${tab === id}">${label}</button>`).join('');
+
+  wire();
+}
+
+function go(t) { tab = t; render(); window.scrollTo(0, 0); }
+
+function wire() {
+  document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => go(b.dataset.tab));
+
+  if (tab === 'today') {
+    document.querySelectorAll('.habit').forEach(b => b.onclick = () => {
+      toggle(sel, b.dataset.id);
+      // Repaint just this row and the score so the tap feels instant.
+      b.setAttribute('aria-pressed', log(sel).done.includes(b.dataset.id));
+      const s = score(sel), t = total();
+      document.querySelector('.score b').textContent = s;
+      document.querySelectorAll('.score b')[1].textContent = pct(sel) + '%';
+      document.querySelectorAll('.score b')[1].style.color = s >= threshold() ? 'var(--ok)' : 'var(--dim)';
+      document.querySelector('.bar i').style.width = (t ? s / t * 100 : 0) + '%';
+      renderHeader();
+    });
+
+    const w = document.getElementById('w');
+    if (w) w.onchange = () => edit(sel, { weight: w.value === '' ? null : parseFloat(w.value) });
+
+    const n = document.getElementById('n');
+    if (n) {
+      let t;
+      n.oninput = () => { clearTimeout(t); t = setTimeout(() => edit(sel, { notes: n.value }), 600); };
+    }
+
+    const prev = document.getElementById('prev'), next = document.getElementById('next');
+    if (prev) prev.onclick = () => { sel = shift(sel, -1); go('today'); };
+    if (next) next.onclick = () => { sel = shift(sel, 1); go('today'); };
+  }
+
+  if (tab === 'calendar') {
+    document.querySelectorAll('.tile').forEach(b => b.onclick = () => { sel = b.dataset.k; go('today'); });
+  }
+
+  if (tab === 'settings') {
+    document.querySelectorAll('#habits .edit').forEach(row => {
+      const i = +row.dataset.i;
+      row.querySelector('.hl').onchange = e => { S.habits[i].label = e.target.value.trim() || 'Untitled'; save(); };
+      row.querySelector('.up').onclick = () => { S.habits.splice(i - 1, 0, S.habits.splice(i, 1)[0]); save(); render(); };
+      row.querySelector('.down').onclick = () => { S.habits.splice(i + 1, 0, S.habits.splice(i, 1)[0]); save(); render(); };
+      row.querySelector('.del').onclick = () => {
+        if (!confirm(`Delete "${S.habits[i].label}"?`)) return;
+        S.habits.splice(i, 1);
+        S.passThreshold = Math.min(S.passThreshold, S.habits.length);
+        save(); render();
+      };
+    });
+
+    document.getElementById('add').onclick = () => {
+      S.habits.push({ id: 'h' + S.nextId++, label: '' });
+      save(); render();
+      const rows = document.querySelectorAll('#habits .hl');
+      rows[rows.length - 1].focus();
+    };
+
+    document.querySelectorAll('[data-s]').forEach(el => el.onchange = () => {
+      const f = el.dataset.s;
+      S[f] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
+      if (f === 'durationDays') S.durationDays = Math.max(1, Math.round(S.durationDays));
+      if (f === 'passThreshold') S.passThreshold = Math.max(1, Math.round(S.passThreshold));
+      sel = clamp(sel);
+      save(); render();
+    });
+
+    document.getElementById('export').onclick = () => exportData();
+    document.getElementById('copy').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText(JSON.stringify(S));
+        alert('Backup copied. Paste it somewhere safe.');
+      } catch (e) { exportData(); }
+    };
+
+    const file = document.getElementById('file');
+    document.getElementById('import').onclick = () => file.click();
+    file.onchange = async () => {
+      if (file.files[0]) restore(await file.files[0].text());
+    };
+    document.getElementById('paste').onclick = async () => {
+      try { restore(await navigator.clipboard.readText()); }
+      catch (e) {
+        const text = prompt('Paste your backup:');
+        if (text) restore(text);
+      }
+    };
+
+    document.getElementById('reset').onclick = () => {
+      if (!confirm('Delete all logs and start over?')) return;
+      S = freshState(); sel = today(); save(); render();
+    };
+  }
+}
+
+render();
+
+if ('serviceWorker' in navigator && location.protocol === 'https:') {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+</script>
+</body>
+</html>

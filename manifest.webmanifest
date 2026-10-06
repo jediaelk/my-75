@@ -1,0 +1,13 @@
+{
+  "name": "75 HARD — Reinvention",
+  "short_name": "75 HARD",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0a0b",
+  "theme_color": "#0a0a0b",
+  "icons": [
+    { "src": "icon.png", "sizes": "180x180", "type": "image/png", "purpose": "any" }
+  ]
+}
